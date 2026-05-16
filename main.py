@@ -11,6 +11,7 @@ from src.models import ProcessResult
 from src.ocr import PaddleTextDetector
 from src.pipeline import process_image
 from src.protection import BodyOverlapDetector
+from src.report import write_report
 
 
 def parse_args() -> argparse.Namespace:
@@ -51,6 +52,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--save-debug", action="store_true", help="Save original/mask/result comparison panels.")
     parser.add_argument("--dry-run", action="store_true", help="Only list matched images; do not load PaddleOCR.")
     parser.add_argument("--log", type=Path, help="Optional JSONL processing log path.")
+    parser.add_argument("--report", type=Path, help="Optional Markdown batch report path.")
     return parser.parse_args()
 
 
@@ -107,6 +109,7 @@ def main() -> int:
         face_overlap_min_pixels=args.face_overlap_min_pixels,
     )
     stats: dict[str, int] = {}
+    results: list[ProcessResult] = []
 
     for image_path in images:
         try:
@@ -130,6 +133,7 @@ def main() -> int:
             result = ProcessResult(path=image_path, status="failed", message=str(exc))
 
         stats[result.status] = stats.get(result.status, 0) + 1
+        results.append(result)
         write_log(args.log, result)
         detail = f", text={result.text_count}" if result.text_count else ""
         watermark = f", watermark={result.watermark_count}" if result.watermark_count else ""
@@ -137,6 +141,7 @@ def main() -> int:
         message = f", {result.message}" if result.message else ""
         print(f"[{result.status}] {image_path}{detail}{watermark}{route}{message}")
 
+    write_report(args.report, results)
     print("Summary:", ", ".join(f"{key}={value}" for key, value in sorted(stats.items())) or "none")
     return 0
 

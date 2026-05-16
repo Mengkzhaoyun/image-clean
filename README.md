@@ -149,6 +149,7 @@ src/protection.py    人脸 / 人体保护路由
 src/inpaint.py       OpenCV / LaMa ONNX 修复后端
 src/debug.py         debug 对比图输出
 src/log.py           JSONL 处理日志
+src/report.py        Markdown 批次报告
 src/io_utils.py      图片读写、路径生成、目录扫描
 src/models.py        共享数据结构
 ```
@@ -250,6 +251,7 @@ python main.py \
 | `--save-mask`              | 保存文字区域 mask                     |
 | `--save-debug`             | 保存原图 / mask / 结果对比图          |
 | `--log`                    | 输出 JSONL 处理日志                   |
+| `--report`                 | 输出 Markdown 批次报告                |
 
 当前版本已实现：
 
@@ -263,6 +265,7 @@ python main.py \
 - 接入 LaMa ONNX 修复后端，可通过 `--inpaint-backend lama-onnx` 切换。
 - 可保存调试对比图，方便检查 mask 和修复效果。
 - 可保存 mask 和处理日志。
+- 可输出 Markdown 批次报告，汇总每张图的状态和诊断指标。
 
 人体覆盖判断与 AIGC 修复接口已预留，后续接入人体分割和生成式 inpaint。
 
