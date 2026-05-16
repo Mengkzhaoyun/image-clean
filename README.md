@@ -14,7 +14,7 @@
 | 显卡     | AMD GPU                                              |
 | 推理加速 | DirectML                                             |
 | 主要语言 | Python                                               |
-| 图片处理 | OpenCV                                              |
+| 图片处理 | OpenCV                                               |
 | 文字检测 | PaddleOCR                                            |
 | 图像修复 | LaMa / Stable Diffusion Inpaint / 其他 AIGC 修复模型 |
 
