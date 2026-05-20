@@ -1,0 +1,102 @@
+{
+  "29": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "512-inpainting-ema.safetensors"
+    }
+  },
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "29",
+        1
+      ],
+      "text": "clean realistic photo background, natural skin, original scene, seamless texture, no text, no watermark"
+    }
+  },
+  "7": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "29",
+        1
+      ],
+      "text": "text, watermark, logo, letters, caption, subtitle, signature, blurry, artifacts, deformed, extra fingers"
+    }
+  },
+  "20": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "__INPUT_RGBA_IMAGE__"
+    }
+  },
+  "26": {
+    "class_type": "VAEEncodeForInpaint",
+    "inputs": {
+      "pixels": [
+        "20",
+        0
+      ],
+      "vae": [
+        "29",
+        2
+      ],
+      "mask": [
+        "20",
+        1
+      ],
+      "grow_mask_by": 6
+    }
+  },
+  "3": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "29",
+        0
+      ],
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ],
+      "latent_image": [
+        "26",
+        0
+      ],
+      "seed": 808369199502636,
+      "steps": 24,
+      "cfg": 7.0,
+      "sampler_name": "uni_pc_bh2",
+      "scheduler": "normal",
+      "denoise": 0.75
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "29",
+        2
+      ]
+    }
+  },
+  "9": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "8",
+        0
+      ],
+      "filename_prefix": "image_clean_inpaint"
+    }
+  }
+}

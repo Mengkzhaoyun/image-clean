@@ -43,7 +43,22 @@ def mask_output_path(output_dir: Path, image_path: Path, input_dir: Path) -> Pat
     return output_dir / relative.parent / f"{relative.stem}.mask.png"
 
 
+def safe_mask_output_path(output_dir: Path, image_path: Path, input_dir: Path) -> Path:
+    relative = image_path.relative_to(input_dir)
+    return output_dir / relative.parent / f"{relative.stem}.mask.safe.png"
+
+
+def restricted_mask_output_path(output_dir: Path, image_path: Path, input_dir: Path) -> Path:
+    relative = image_path.relative_to(input_dir)
+    return output_dir / relative.parent / f"{relative.stem}.mask.restricted.png"
+
+
+def mask_review_output_path(output_dir: Path, image_path: Path, input_dir: Path, kind: str = "all") -> Path:
+    relative = image_path.relative_to(input_dir)
+    suffix = "mask.review" if kind == "all" else f"mask.{kind}.review"
+    return output_dir / relative.parent / f"{relative.stem}.{suffix}.jpg"
+
+
 def debug_output_path(output_dir: Path, image_path: Path, input_dir: Path) -> Path:
     relative = image_path.relative_to(input_dir)
     return output_dir / relative.parent / f"{relative.stem}.debug.jpg"
-

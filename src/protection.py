@@ -19,7 +19,7 @@ class BodyOverlapDetector:
         if not self._protect_faces or self._face_detector is None or not np.any(mask):
             return ProtectionResult(overlaps=False)
 
-        protected = self._build_face_protection_mask(image)
+        protected = self.build_protection_mask(image)
         protected_pixels = int(np.count_nonzero(protected))
         if protected_pixels == 0:
             return ProtectionResult(overlaps=False)
@@ -32,6 +32,11 @@ class BodyOverlapDetector:
             overlap_pixels=overlap_pixels,
             protected_pixels=protected_pixels,
         )
+
+    def build_protection_mask(self, image: np.ndarray) -> np.ndarray:
+        if not self._protect_faces or self._face_detector is None:
+            return np.zeros(image.shape[:2], dtype=np.uint8)
+        return self._build_face_protection_mask(image)
 
     def _create_face_detector(self) -> cv2.CascadeClassifier | None:
         cascade_path = Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml"

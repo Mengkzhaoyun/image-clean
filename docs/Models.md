@@ -96,3 +96,107 @@ models/damo/cv_fft_inpainting_lama
 ```
 
 该版本主权重是 `pytorch_model.pt`，不是 ONNX 格式，不能直接用于当前 `lama-onnx` 后端。
+
+## Florence-2 Base
+
+Florence-2 用作可选视觉文字检测层，补充 PaddleOCR 对贴边、竖排、低对比海报文字的漏检。
+
+当前推荐模型：
+
+```text
+microsoft/Florence-2-base
+```
+
+### Windows PowerShell 初始化命令
+
+在项目根目录执行：
+
+```powershell
+.\.venv\Scripts\activate
+python -m pip install torch transformers pillow
+$env:HF_ENDPOINT = "https://hf-mirror.com"
+python -c "from huggingface_hub import snapshot_download; print(snapshot_download(repo_id='microsoft/Florence-2-base', local_dir='models/microsoft/Florence-2-base'))"
+```
+
+### 运行 Florence-2 视觉检测
+
+```powershell
+.\.venv\Scripts\python.exe main.py `
+  --input .\.tmp `
+  --output .\output `
+  --auto-run-dir `
+  --recursive `
+  --save-mask `
+  --save-debug `
+  --anonymous-report `
+  --vision-text `
+  --vision-model .\models\microsoft\Florence-2-base `
+  --vision-trigger empty `
+  --vision-max-side 768 `
+  --edge-text `
+  --inpaint-backend opencv `
+  --device cpu
+```
+
+报告中会出现：
+
+```text
+Vision Text
+```
+
+该字段表示 Florence-2 额外提供的文字候选数量。它只是检测候选，不默认替代 PaddleOCR。
+
+## ComfyUI API Inpaint
+
+ComfyUI 当前作为高级修复后端使用，不负责识别 mask。项目侧继续通过 PaddleOCR、边缘 OCR、Florence-2 和水印补偿生成 mask，再把原图和 mask 交给 ComfyUI 做局部重绘。
+
+`.env` 可配置：
+
+```text
+COMFYUI_URL=https://comfyui.wodcloud.com/shucheng
+COMFYUI_WORKFLOW=workflows/sd1.5_inpaint_api.json
+COMFYUI_TIMEOUT=900
+COMFYUI_POLL_INTERVAL=1.5
+```
+
+### 验证 ComfyUI 服务
+
+```powershell
+Invoke-WebRequest "$env:COMFYUI_URL/system_stats"
+```
+
+如果没有把 `COMFYUI_URL` 写入当前 PowerShell 环境，也可以直接使用 `.env` 里的地址：
+
+```powershell
+Invoke-WebRequest "https://comfyui.wodcloud.com/shucheng/system_stats"
+```
+
+### 单图探针命令
+
+建议先用少量样例验证链路，不直接全量提交到远端队列：
+
+```powershell
+.\.venv\Scripts\python.exe main.py `
+  --preset watermark-first `
+  --input .\.tmp\comfy_probe `
+  --output .\output `
+  --auto-run-dir `
+  --recursive `
+  --save-mask `
+  --save-debug `
+  --anonymous-report `
+  --inpaint-backend comfyui-api `
+  --protected-action repair `
+  --device cpu
+```
+
+2026-05-19 验证记录：
+
+```text
+output/20260519_1636.md
+status: cleaned_protected
+residual_text_count: 0
+route: comfyui-api + post dark residual cleanup
+```
+
+该轮证明 `Python mask -> ComfyUI inpaint -> 项目侧复检/残留清理` 链路已经打通。肉眼检查 debug 图时，底部大字和右侧竖排标题能被覆盖并清理；人物区域仍有可见涂抹感，后续优化重点应放在 ComfyUI 模型、denoise、prompt 和局部重绘参数，而不是把 mask 识别搬进 ComfyUI。
